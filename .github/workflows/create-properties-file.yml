@@ -18,22 +18,31 @@ jobs:
       - name: Install OpenSSL
         run: sudo apt-get install -y openssl
 
-      - name: Encrypt DB_SECRET
-        id: encrypt_secret
+      - name: Encrypt DB_DATABASE_PASSWORD
+        id: encrypt_password
         run: |
-          echo -n "${{ secrets.DB_SECRET }}" | openssl enc -aes-256-cbc -a -salt -pass pass:${{ secrets.ENV_SECRET_KEY }} -out encrypted_secret.txt
-          ENCRYPTED_SECRET=$(cat encrypted_secret.txt)
-          echo "::set-output name=encrypted_secret::$ENCRYPTED_SECRET"
+          echo -n "${{ secrets.DB_DATABASE_PASSWORD }}" | openssl enc -aes-256-cbc -a -salt -pass pass:${{ secrets.ENV_SECRET_KEY }} -out encrypted_password.txt
+          ENCRYPTED_PASSWORD=$(cat encrypted_password.txt)
+          echo "::set-output name=encrypted_password::$ENCRYPTED_PASSWORD"
 
       - name: Create properties file
         run: |
-          echo "DB_HOST=${{ vars.DB_HOST }}" >> dev.properties
-          echo "DB_PORT=${{ vars.DB_PORT }}" >> dev.properties
-          echo "DB_USER=${{ vars.DB_USER }}" >> dev.properties
-          echo "DB_PASS=${{ steps.encrypt_secret.outputs.encrypted_secret }}" >> dev.properties
+          echo "DB_DATABASE_HOST=${{ vars.DB_DATABASE_HOST }}" >> dev.properties
+          echo "DB_DATABASE_PORT=${{ vars.DB_DATABASE_PORT }}" >> dev.properties
+          echo "DB_DATABASE_USER=${{ secrets.DB_DATABASE_USER }}" >> dev.properties
+          echo "DB_DATABASE_PASSWORD=${{ steps.encrypt_password.outputs.encrypted_password }}" >> dev.properties
 
-      - name: Upload properties file
-        uses: actions/upload-artifact@v3
-        with:
-          name: dev-properties
-          path: dev.properties
+      - name: Copy properties file to repository folder
+        run: |
+          mkdir -p avanthipropsrep/dev_properties
+          cp dev.properties avanthipropsrep/dev_properties/dev.properties
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add myrepo/dev_properties/dev.properties
+          git commit -m "Add encrypted properties file"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
