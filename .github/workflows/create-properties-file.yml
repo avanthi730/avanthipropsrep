@@ -1,0 +1,28 @@
+name: Create Properties File
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  create-properties-file:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Create properties file
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> dev.properties
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> dev.properties
+          echo "DB_USER=${{ secrets.DB_USER }}" >> dev.properties
+          echo "DB_PASS=${{ secrets.DB_PASS }}" >> dev.properties
+
+      - name: Upload properties file
+        uses: actions/upload-artifact@v2
+        with:
+          name: dev-properties
+          path: dev.properties
