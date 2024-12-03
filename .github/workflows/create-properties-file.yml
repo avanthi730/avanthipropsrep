@@ -1,4 +1,4 @@
-name: Create Properties File
+name: Create Encrypted Properties File
 
 on:
   push:
@@ -15,12 +15,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install OpenSSL
+        run: sudo apt-get install -y openssl
+
+      - name: Encrypt DB_SECRET
+        id: encrypt_secret
+        run: |
+          echo -n "${{ secrets.DB_SECRET }}" | openssl enc -aes-256-cbc -a -salt -pass pass:${{ secrets.ENV_SECRET_KEY }} -out encrypted_secret.txt
+          ENCRYPTED_SECRET=$(cat encrypted_secret.txt)
+          echo "::set-output name=encrypted_secret::$ENCRYPTED_SECRET"
+
       - name: Create properties file
         run: |
-          echo "DB_HOST=${{ vars.DB_DATABASE_HOST }}" >> dev.properties
-          echo "DB_PORT=${{ vars.DB_DATABASE_PORT }}" >> dev.properties
-          echo "DB_USER=${{ secrets.DB_DATABASE_USER }}" >> dev.properties
-          echo "DB_PASS=${{ secrets.DB_DATABASE_PASSWORD }}" >> dev.properties
+          echo "DB_HOST=${{ vars.DB_HOST }}" >> dev.properties
+          echo "DB_PORT=${{ vars.DB_PORT }}" >> dev.properties
+          echo "DB_USER=${{ vars.DB_USER }}" >> dev.properties
+          echo "DB_PASS=${{ steps.encrypt_secret.outputs.encrypted_secret }}" >> dev.properties
 
       - name: Upload properties file
         uses: actions/upload-artifact@v3
