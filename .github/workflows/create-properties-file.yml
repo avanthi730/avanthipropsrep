@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Create properties file
         run: |
@@ -22,7 +22,7 @@ jobs:
           echo "DB_PASS=${{ secrets.DB_PASS }}" >> dev.properties
 
       - name: Upload properties file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dev-properties
           path: dev.properties
