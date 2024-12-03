@@ -9,6 +9,7 @@ on:
 jobs:
   create-properties-file:
     runs-on: ubuntu-latest
+    environment: Dev
 
     steps:
       - name: Checkout repository
@@ -16,10 +17,10 @@ jobs:
 
       - name: Create properties file
         run: |
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> dev.properties
-          echo "DB_PORT=${{ secrets.DB_PORT }}" >> dev.properties
-          echo "DB_USER=${{ secrets.DB_USER }}" >> dev.properties
-          echo "DB_PASS=${{ secrets.DB_PASS }}" >> dev.properties
+          echo "DB_HOST=${{ vars.DB_DATABASE_HOST }}" >> dev.properties
+          echo "DB_PORT=${{ vars.DB_DATABASE_PORT }}" >> dev.properties
+          echo "DB_USER=${{ secrets.DB_DATABASE_USER }}" >> dev.properties
+          echo "DB_PASS=${{ secrets.DB_DATABASE_PASSWORD }}" >> dev.properties
 
       - name: Upload properties file
         uses: actions/upload-artifact@v3
